@@ -150,6 +150,14 @@
       to { opacity: 1; }
     }
 
+    .shield {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: transparent;
+      cursor: pointer;
+    }
+
     @media (max-width: 600px) {
       h2.category { font-size: 1.1rem; }
       .info h3 { font-size: 0.9rem; }
@@ -166,7 +174,12 @@
 
   <div id="playerContainer">
     <button id="closeBtn">&times;</button>
-    <iframe id="player" allowfullscreen allow="encrypted-media; picture-in-picture;"></iframe>
+    <iframe
+      id="player"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"
+      allowfullscreen
+      allow="encrypted-media; picture-in-picture;"
+    ></iframe>
   </div>
 
   <script>
@@ -183,7 +196,6 @@
       try {
         const res = await fetch(api);
         const json = await res.json();
-        // Remove 24/7 and Master Stream Test feeds
         allStreams = json.streams
           .map(cat => ({
             category: cat.category,
@@ -232,7 +244,6 @@
 
         const grid = document.createElement("div");
         grid.className = "grid";
-
         liveNow.forEach(stream => grid.appendChild(makeEventCard(stream, true)));
         liveSection.appendChild(grid);
         content.appendChild(liveSection);
@@ -271,18 +282,28 @@
           <p>${stream.tag || stream.category}</p>
         </div>
       `;
-      div.onclick = () => {
-        player.src = stream.iframe;
-        playerContainer.style.display = "flex";
-      };
+      div.onclick = () => openSafePlayer(stream.iframe);
       return div;
     }
 
-    // Search
+    function openSafePlayer(url) {
+      player.src = url;
+      playerContainer.style.display = "flex";
+      // temporary ad-shield
+      const shield = document.createElement("div");
+      shield.className = "shield";
+      playerContainer.appendChild(shield);
+      setTimeout(() => shield.remove(), 3000);
+    }
+
+    closeBtn.onclick = () => {
+      player.src = "";
+      playerContainer.style.display = "none";
+    };
+
     searchBar.addEventListener("input", e => {
       const term = e.target.value.toLowerCase();
       if (!term) return displayStreams(allStreams);
-
       const filtered = allStreams
         .map(cat => ({
           category: cat.category,
@@ -293,14 +314,8 @@
           )
         }))
         .filter(cat => cat.streams.length > 0);
-
       displayStreams(filtered);
     });
-
-    closeBtn.onclick = () => {
-      player.src = "";
-      playerContainer.style.display = "none";
-    };
 
     loadStreams();
   </script>
