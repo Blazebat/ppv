@@ -109,6 +109,19 @@
       font-size: 0.85rem;
       margin-top: 0.2rem;
       font-weight: 500;
+      transition: color 0.5s ease;
+    }
+
+    /* Green pulse animation for about-to-start streams */
+    .countdown.soon {
+      color: #00ff99;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
     }
 
     #playerContainer {
@@ -288,11 +301,15 @@
           const start = parseInt(cd.dataset.start);
           const now = Math.floor(Date.now() / 1000);
           const diff = start - now;
-          if (diff <= 0) cd.textContent = "Starting soon";
-          else {
+          if (diff <= 0) {
+            cd.textContent = "Starting soon";
+            cd.classList.add("soon");
+          } else {
             const h = Math.floor(diff / 3600);
             const m = Math.floor((diff % 3600) / 60);
             cd.textContent = h > 0 ? `Starts in ${h}h ${m}m` : `Starts in ${m}m`;
+            if (diff <= 600) cd.classList.add("soon");
+            else cd.classList.remove("soon");
           }
         });
       }, 1000);
