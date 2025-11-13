@@ -84,6 +84,11 @@
     color: #00ff99;
     animation: pulse 1s infinite;
   }
+  .viewers {
+    font-size: 13px;
+    opacity: 0.8;
+    margin-top: 3px;
+  }
   @keyframes pulse {
     0% { opacity: 1; }
     50% { opacity: 0.6; }
@@ -171,7 +176,6 @@ function displayStreams(streamsGroups) {
   container.innerHTML = "";
   const now = Math.floor(Date.now()/1000);
 
-  // Collect live streams
   const liveStreams = [];
   const upcomingGroups = [];
 
@@ -227,6 +231,7 @@ function createCard(stream, isLive){
   const card = document.createElement("div");
   card.className = "card";
   card.dataset.startTime = stream.starts_at;
+  card.dataset.viewers = stream.viewers || 0;
 
   const img = document.createElement("img");
   img.src = stream.poster;
@@ -241,6 +246,10 @@ function createCard(stream, isLive){
   const title = document.createElement("div");
   title.className = "title";
   title.textContent = stream.name;
+
+  const viewers = document.createElement("div");
+  viewers.className = "viewers";
+  viewers.textContent = `👁️ Viewers: ${stream.viewers || 0}`;
 
   const timer = document.createElement("div");
   timer.className = "timer";
@@ -257,6 +266,7 @@ function createCard(stream, isLive){
 
   info.appendChild(catLabel);
   info.appendChild(title);
+  info.appendChild(viewers);
   info.appendChild(timer);
   card.appendChild(img);
   card.appendChild(info);
@@ -265,13 +275,35 @@ function createCard(stream, isLive){
   return card;
 }
 
+async function updateLiveViewers(){
+  try{
+    const res = await fetch("https://ppv.to/api/streams");
+    const data = await res.json();
+    const now = Math.floor(Date.now()/1000);
+
+    data.streams.forEach(group=>{
+      group.streams.forEach(stream=>{
+        if(now >= stream.starts_at && now <= stream.ends_at){
+          const card = [...document.querySelectorAll(".card")].find(c => c.querySelector(".title").textContent===stream.name);
+          if(card){
+            const viewersEl = card.querySelector(".viewers");
+            viewersEl.textContent = `👁️ Viewers: ${stream.viewers || 0}`;
+          }
+        }
+      });
+    });
+  }catch(e){
+    console.error("Failed to update viewers:", e);
+  }
+}
+
 function updateCountdown(el,startTime){
   const now = Math.floor(Date.now()/1000);
   const diff = startTime - now;
   if(diff<=0){
-    el.textContent="Happening now!";
+    el.textContent="Starting now!";
     el.classList.add("soon");
-    return true; // stream should go live
+    return true;
   }
   const days=Math.floor(diff/86400);
   const hours=Math.floor((diff%86400)/3600);
@@ -297,7 +329,8 @@ function startCountdownUpdates(){
         }
       }
     });
-    if(changed) displayStreams(allStreams); // re-render to move new live streams on top
+    if(changed) displayStreams(allStreams);
+    updateLiveViewers(); // refresh viewers count every second
   },1000);
 }
 
@@ -309,7 +342,6 @@ function openPlayer(url){
   document.body.style.overflow="hidden";
 }
 
-// Close button
 document.getElementById("closeBtn").addEventListener("click",()=>{
   const container=document.getElementById("playerContainer");
   const iframe=document.getElementById("player");
