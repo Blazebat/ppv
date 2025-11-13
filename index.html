@@ -54,6 +54,7 @@
     }
 
     .event {
+      position: relative;
       background: #1a1a1a;
       border-radius: 10px;
       overflow: hidden;
@@ -71,6 +72,20 @@
       height: 150px;
       object-fit: cover;
       display: block;
+    }
+
+    .badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: #e50914;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: bold;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      box-shadow: 0 0 8px rgba(0,0,0,0.6);
     }
 
     .info {
@@ -176,41 +191,85 @@
       }
     }
 
+    function isLive(stream) {
+      const now = Math.floor(Date.now() / 1000);
+      return now >= stream.starts_at && now <= stream.ends_at;
+    }
+
     function displayStreams(categories) {
       content.innerHTML = "";
+
+      // Flatten and sort live first
+      const liveNow = [];
+      const upcoming = [];
+
       categories.forEach(category => {
-        const section = document.createElement("section");
+        category.streams.forEach(s => {
+          if (isLive(s)) {
+            liveNow.push({ ...s, category: category.category });
+          } else {
+            upcoming.push({ ...s, category: category.category });
+          }
+        });
+      });
+
+      if (liveNow.length > 0) {
+        const liveSection = document.createElement("section");
         const heading = document.createElement("h2");
         heading.className = "category";
-        heading.textContent = category.category;
-        section.appendChild(heading);
+        heading.textContent = "🔴 LIVE NOW";
+        liveSection.appendChild(heading);
 
         const grid = document.createElement("div");
         grid.className = "grid";
 
-        category.streams.forEach(stream => {
-          const div = document.createElement("div");
-          div.className = "event";
-          div.innerHTML = `
-            <img loading="lazy" src="${stream.poster}" alt="${stream.name}">
-            <div class="info">
-              <h3>${stream.name}</h3>
-              <p>${stream.tag}</p>
-            </div>
-          `;
-          div.onclick = () => {
-            player.src = stream.iframe;
-            playerContainer.style.display = "flex";
-          };
-          grid.appendChild(div);
-        });
+        liveNow.forEach(stream => grid.appendChild(makeEventCard(stream, true)));
+        liveSection.appendChild(grid);
+        content.appendChild(liveSection);
+      }
+
+      // Group upcoming by category
+      const grouped = {};
+      upcoming.forEach(s => {
+        if (!grouped[s.category]) grouped[s.category] = [];
+        grouped[s.category].push(s);
+      });
+
+      Object.keys(grouped).forEach(catName => {
+        const section = document.createElement("section");
+        const heading = document.createElement("h2");
+        heading.className = "category";
+        heading.textContent = catName;
+        section.appendChild(heading);
+
+        const grid = document.createElement("div");
+        grid.className = "grid";
+        grouped[catName].forEach(s => grid.appendChild(makeEventCard(s, false)));
 
         section.appendChild(grid);
         content.appendChild(section);
       });
     }
 
-    // Search and filter
+    function makeEventCard(stream, live = false) {
+      const div = document.createElement("div");
+      div.className = "event";
+      div.innerHTML = `
+        <img loading="lazy" src="${stream.poster}" alt="${stream.name}">
+        ${live ? '<span class="badge">LIVE</span>' : ""}
+        <div class="info">
+          <h3>${stream.name}</h3>
+          <p>${stream.tag || stream.category}</p>
+        </div>
+      `;
+      div.onclick = () => {
+        player.src = stream.iframe;
+        playerContainer.style.display = "flex";
+      };
+      return div;
+    }
+
+    // Search
     searchBar.addEventListener("input", e => {
       const term = e.target.value.toLowerCase();
       if (!term) return displayStreams(allStreams);
