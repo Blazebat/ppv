@@ -301,7 +301,7 @@ function updateCountdown(el,startTime){
   const now = Math.floor(Date.now()/1000);
   const diff = startTime - now;
   if(diff<=0){
-    el.textContent="Starting now!";
+    el.textContent="Happening now!";
     el.classList.add("soon");
     return true;
   }
