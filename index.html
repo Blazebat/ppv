@@ -183,11 +183,11 @@
       try {
         const res = await fetch(api);
         const json = await res.json();
-        // Remove 24/7 streams
+        // Remove 24/7 and Master Stream Test feeds
         allStreams = json.streams
           .map(cat => ({
             category: cat.category,
-            streams: cat.streams.filter(s => !is247(s))
+            streams: cat.streams.filter(s => !isFilteredOut(s))
           }))
           .filter(cat => cat.streams.length > 0);
         displayStreams(allStreams);
@@ -197,9 +197,9 @@
       }
     }
 
-    function is247(stream) {
+    function isFilteredOut(stream) {
       const text = `${stream.name} ${stream.tag} ${stream.category}`.toLowerCase();
-      return text.includes("24/7") || text.includes("247");
+      return text.includes("24/7") || text.includes("247") || text.includes("master stream test");
     }
 
     function isLive(stream) {
