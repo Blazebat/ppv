@@ -3,363 +3,193 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PPV Live Streams</title>
-  <link rel="icon" href="logo.png" />
+  <title>PPV Streams</title>
+  <link rel="icon" href="logo.png">
   <style>
     body {
-      margin: 0;
-      font-family: "Poppins", sans-serif;
-      background: #0a0a0a;
+      font-family: Arial, sans-serif;
+      background-color: #0a0a0a;
       color: #fff;
+      margin: 0;
+      padding: 0;
     }
-
     header {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      background: #111;
-      padding: 1rem;
-      border-bottom: 1px solid #222;
+      justify-content: center;
+      background-color: #111;
+      padding: 15px;
     }
-
     header img {
-      height: 60px;
-      margin-bottom: 0.5rem;
+      height: 50px;
     }
-
-    #searchBar {
-      width: 90%;
-      max-width: 500px;
-      padding: 0.7rem 1rem;
-      border-radius: 30px;
-      border: none;
-      background: #1b1b1b;
-      color: #fff;
-      outline: none;
-      font-size: 1rem;
-    }
-
-    h2.category {
-      padding: 0.5rem 1rem;
-      margin: 1rem 0 0.5rem;
-      border-left: 5px solid #e50914;
-      font-size: 1.4rem;
-    }
-
-    .grid {
+    .container {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 1rem;
-      padding: 0 1rem 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+      padding: 20px;
     }
-
-    .event {
-      position: relative;
+    .card {
       background: #1a1a1a;
       border-radius: 10px;
       overflow: hidden;
-      cursor: pointer;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+      transition: transform 0.3s ease;
     }
-
-    .event:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 20px rgba(229, 9, 20, 0.3);
+    .card:hover {
+      transform: scale(1.03);
     }
-
-    .event img {
+    .card img {
       width: 100%;
-      height: 150px;
+      height: 180px;
       object-fit: cover;
-      display: block;
     }
-
-    .badge {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      background: #e50914;
-      color: #fff;
-      font-size: 0.8rem;
-      font-weight: bold;
-      padding: 0.3rem 0.6rem;
-      border-radius: 4px;
-      text-transform: uppercase;
-      box-shadow: 0 0 8px rgba(0,0,0,0.6);
-    }
-
     .info {
-      padding: 0.75rem;
+      padding: 10px;
     }
-
-    .info h3 {
-      font-size: 1rem;
-      margin: 0 0 0.2rem;
-      color: #fff;
+    .category {
+      font-size: 13px;
+      opacity: 0.8;
     }
-
-    .info p {
-      margin: 0;
-      color: #bbb;
-      font-size: 0.85rem;
+    .title {
+      font-size: 16px;
+      font-weight: bold;
+      margin: 5px 0;
     }
-
-    .countdown {
-      color: #e0e0e0;
-      font-size: 0.85rem;
-      margin-top: 0.2rem;
-      font-weight: 500;
-      transition: color 0.5s ease;
+    .timer {
+      font-size: 14px;
+      color: #ffd700;
     }
-
-    /* Green pulse animation for about-to-start streams */
-    .countdown.soon {
-      color: #00ff99;
-      animation: pulse 1s infinite;
+    .live {
+      background: red;
+      color: white;
+      font-size: 12px;
+      padding: 3px 6px;
+      border-radius: 5px;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-weight: bold;
     }
-
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.6; }
-      100% { opacity: 1; }
-    }
-
-    #playerContainer {
-      display: none;
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.95);
       z-index: 9999;
-      justify-content: center;
-      align-items: center;
-      animation: fadeIn 0.3s ease;
-    }
-
-    #playerContainer iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      position: absolute;
-    }
-
-    #closeBtn {
-      position: absolute;
-      top: 15px;
-      right: 25px;
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      color: white;
-      font-size: 2rem;
-      line-height: 1;
-      border-radius: 50%;
-      cursor: pointer;
-      z-index: 10000;
-      width: 45px;
-      height: 45px;
-    }
-
-    #closeBtn:hover {
-      background: rgba(255, 255, 255, 0.25);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .shield {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      background: transparent;
-      cursor: pointer;
-    }
-
-    @media (max-width: 600px) {
-      h2.category { font-size: 1.1rem; }
-      .info h3 { font-size: 0.9rem; }
+      display: none;
     }
   </style>
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="Site Logo" />
-    <input type="text" id="searchBar" placeholder="Search events..." />
+    <img src="logo.png" alt="Logo">
   </header>
 
-  <main id="content"></main>
+  <div class="container" id="streams"></div>
 
-  <div id="playerContainer">
-    <button id="closeBtn">&times;</button>
-    <iframe
-      id="player"
-      sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"
-      allowfullscreen
-      allow="encrypted-media; picture-in-picture;"
-    ></iframe>
-  </div>
+  <iframe id="player" allowfullscreen allow="encrypted-media; picture-in-picture;"></iframe>
 
   <script>
-    const api = "https://ppv.to/api/streams";
-    const content = document.getElementById("content");
-    const searchBar = document.getElementById("searchBar");
-    const playerContainer = document.getElementById("playerContainer");
-    const player = document.getElementById("player");
-    const closeBtn = document.getElementById("closeBtn");
-    let allStreams = [];
-
     async function loadStreams() {
-      try {
-        const res = await fetch(api);
-        const json = await res.json();
-        allStreams = json.streams
-          .map(cat => ({
-            category: cat.category,
-            streams: cat.streams.filter(s => !isFilteredOut(s))
-          }))
-          .filter(cat => cat.streams.length > 0);
-        displayStreams(allStreams);
-      } catch (err) {
-        console.error(err);
-        content.innerHTML = "<p style='text-align:center;color:#888;'>Failed to load streams.</p>";
-      }
-    }
+      const res = await fetch("https://ppv.to/api/streams");
+      const data = await res.json();
 
-    function isFilteredOut(stream) {
-      const text = `${stream.name} ${stream.tag} ${stream.category}`.toLowerCase();
-      return text.includes("24/7") || text.includes("247") || text.includes("master stream test");
-    }
+      const container = document.getElementById("streams");
+      container.innerHTML = "";
 
-    function isLive(stream) {
       const now = Math.floor(Date.now() / 1000);
-      return now >= stream.starts_at && now <= stream.ends_at;
-    }
+      const allStreams = [];
 
-    function timeUntilStart(stream) {
-      const now = Math.floor(Date.now() / 1000);
-      const diff = stream.starts_at - now;
-      if (diff <= 0) return "Starting soon";
-      const hours = Math.floor(diff / 3600);
-      const minutes = Math.floor((diff % 3600) / 60);
-      if (hours > 0) return `Starts in ${hours}h ${minutes}m`;
-      return `Starts in ${minutes}m`;
-    }
-
-    function displayStreams(categories) {
-      content.innerHTML = "";
-
-      const liveNow = [];
-      const upcoming = [];
-
-      categories.forEach(category => {
-        category.streams.forEach(s => {
-          if (isLive(s)) liveNow.push({ ...s, category: category.category });
-          else upcoming.push({ ...s, category: category.category });
-        });
-      });
-
-      if (liveNow.length > 0) {
-        const liveSection = document.createElement("section");
-        const heading = document.createElement("h2");
-        heading.className = "category";
-        heading.textContent = "🔴 LIVE NOW";
-        liveSection.appendChild(heading);
-
-        const grid = document.createElement("div");
-        grid.className = "grid";
-        liveNow.forEach(stream => grid.appendChild(makeEventCard(stream, true)));
-        liveSection.appendChild(grid);
-        content.appendChild(liveSection);
-      }
-
-      const grouped = {};
-      upcoming.forEach(s => {
-        if (!grouped[s.category]) grouped[s.category] = [];
-        grouped[s.category].push(s);
-      });
-
-      Object.keys(grouped).forEach(catName => {
-        const section = document.createElement("section");
-        const heading = document.createElement("h2");
-        heading.className = "category";
-        heading.textContent = catName;
-        section.appendChild(heading);
-
-        const grid = document.createElement("div");
-        grid.className = "grid";
-        grouped[catName].forEach(s => grid.appendChild(makeEventCard(s, false)));
-        section.appendChild(grid);
-        content.appendChild(section);
-      });
-
-      // Update countdowns every second
-      setInterval(() => {
-        document.querySelectorAll(".countdown").forEach(cd => {
-          const start = parseInt(cd.dataset.start);
-          const now = Math.floor(Date.now() / 1000);
-          const diff = start - now;
-          if (diff <= 0) {
-            cd.textContent = "Starting soon";
-            cd.classList.add("soon");
-          } else {
-            const h = Math.floor(diff / 3600);
-            const m = Math.floor((diff % 3600) / 60);
-            cd.textContent = h > 0 ? `Starts in ${h}h ${m}m` : `Starts in ${m}m`;
-            if (diff <= 600) cd.classList.add("soon");
-            else cd.classList.remove("soon");
+      data.streams.forEach(cat => {
+        cat.streams.forEach(stream => {
+          if (!stream.name.toLowerCase().includes("24/7") &&
+              !stream.name.toLowerCase().includes("master stream test")) {
+            allStreams.push({
+              ...stream,
+              category: cat.category
+            });
           }
         });
-      }, 1000);
+      });
+
+      allStreams.sort((a, b) => {
+        const aLive = now >= a.starts_at && now <= a.ends_at;
+        const bLive = now >= b.starts_at && now <= b.ends_at;
+        if (aLive && !bLive) return -1;
+        if (!aLive && bLive) return 1;
+        return a.starts_at - b.starts_at;
+      });
+
+      allStreams.forEach(stream => {
+        const isLive = now >= stream.starts_at && now <= stream.ends_at;
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const img = document.createElement("img");
+        img.src = stream.poster;
+
+        const info = document.createElement("div");
+        info.className = "info";
+
+        const category = document.createElement("div");
+        category.className = "category";
+        category.textContent = stream.category;
+
+        const title = document.createElement("div");
+        title.className = "title";
+        title.textContent = stream.name;
+
+        const timer = document.createElement("div");
+        timer.className = "timer";
+
+        if (isLive) {
+          const liveTag = document.createElement("div");
+          liveTag.className = "live";
+          liveTag.textContent = "LIVE NOW";
+          card.appendChild(liveTag);
+        } else {
+          updateCountdown(timer, stream.starts_at);
+          setInterval(() => updateCountdown(timer, stream.starts_at), 1000);
+        }
+
+        info.appendChild(category);
+        info.appendChild(title);
+        info.appendChild(timer);
+        card.appendChild(img);
+        card.appendChild(info);
+
+        card.addEventListener("click", () => openPlayer(stream.iframe));
+
+        container.appendChild(card);
+      });
     }
 
-    function makeEventCard(stream, live = false) {
-      const div = document.createElement("div");
-      div.className = "event";
-      div.innerHTML = `
-        <img loading="lazy" src="${stream.poster}" alt="${stream.name}">
-        ${live ? '<span class="badge">LIVE</span>' : ""}
-        <div class="info">
-          <h3>${stream.name}</h3>
-          <p>${stream.tag || stream.category}</p>
-          ${!live ? `<div class="countdown" data-start="${stream.starts_at}">${timeUntilStart(stream)}</div>` : ""}
-        </div>
-      `;
-      div.onclick = () => openSafePlayer(stream.iframe);
-      return div;
+    function updateCountdown(element, startTime) {
+      const now = Math.floor(Date.now() / 1000);
+      const diff = startTime - now;
+
+      if (diff <= 0) {
+        element.textContent = "Starting now!";
+        return;
+      }
+
+      const days = Math.floor(diff / 86400);
+      const hours = Math.floor((diff % 86400) / 3600);
+      const minutes = Math.floor((diff % 3600) / 60);
+      const seconds = diff % 60;
+
+      element.textContent = `Starts in ${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
 
-    function openSafePlayer(url) {
-      player.src = url;
-      playerContainer.style.display = "flex";
-      const shield = document.createElement("div");
-      shield.className = "shield";
-      playerContainer.appendChild(shield);
-      setTimeout(() => shield.remove(), 3000);
+    function openPlayer(url) {
+      const iframe = document.getElementById("player");
+      iframe.src = url + "?noads=true";
+      iframe.style.display = "block";
+      document.body.style.overflow = "hidden";
     }
-
-    closeBtn.onclick = () => {
-      player.src = "";
-      playerContainer.style.display = "none";
-    };
-
-    searchBar.addEventListener("input", e => {
-      const term = e.target.value.toLowerCase();
-      if (!term) return displayStreams(allStreams);
-      const filtered = allStreams
-        .map(cat => ({
-          category: cat.category,
-          streams: cat.streams.filter(s =>
-            s.name.toLowerCase().includes(term) ||
-            s.tag.toLowerCase().includes(term) ||
-            cat.category.toLowerCase().includes(term)
-          )
-        }))
-        .filter(cat => cat.streams.length > 0);
-      displayStreams(filtered);
-    });
 
     loadStreams();
   </script>
