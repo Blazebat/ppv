@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PPV Live Streams</title>
+  <link rel="icon" href="logo.png" />
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #111;
+      padding: 1rem;
+      border-bottom: 1px solid #222;
+    }
+
+    header img {
+      height: 60px;
+      margin-bottom: 0.5rem;
+    }
+
+    #searchBar {
+      width: 90%;
+      max-width: 500px;
+      padding: 0.7rem 1rem;
+      border-radius: 30px;
+      border: none;
+      background: #1b1b1b;
+      color: #fff;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    h2.category {
+      padding: 0.5rem 1rem;
+      margin: 1rem 0 0.5rem;
+      border-left: 5px solid #e50914;
+      font-size: 1.4rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+      padding: 0 1rem 1rem;
+    }
+
+    .event {
+      background: #1a1a1a;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .event:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(229, 9, 20, 0.3);
+    }
+
+    .event img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .info {
+      padding: 0.75rem;
+    }
+
+    .info h3 {
+      font-size: 1rem;
+      margin: 0 0 0.2rem;
+      color: #fff;
+    }
+
+    .info p {
+      margin: 0;
+      color: #bbb;
+      font-size: 0.85rem;
+    }
+
+    #playerContainer {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    #playerContainer iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      position: absolute;
+    }
+
+    #closeBtn {
+      position: absolute;
+      top: 15px;
+      right: 25px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      font-size: 2rem;
+      line-height: 1;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 10000;
+      width: 45px;
+      height: 45px;
+    }
+
+    #closeBtn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 600px) {
+      h2.category { font-size: 1.1rem; }
+      .info h3 { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="Site Logo" />
+    <input type="text" id="searchBar" placeholder="Search events..." />
+  </header>
+
+  <main id="content"></main>
+
+  <div id="playerContainer">
+    <button id="closeBtn">&times;</button>
+    <iframe id="player" allowfullscreen allow="encrypted-media; picture-in-picture;"></iframe>
+  </div>
+
+  <script>
+    const api = "https://ppv.to/api/streams";
+    const content = document.getElementById("content");
+    const searchBar = document.getElementById("searchBar");
+    const playerContainer = document.getElementById("playerContainer");
+    const player = document.getElementById("player");
+    const closeBtn = document.getElementById("closeBtn");
+
+    let allStreams = [];
+
+    async function loadStreams() {
+      try {
+        const res = await fetch(api);
+        const json = await res.json();
+        allStreams = json.streams;
+        displayStreams(allStreams);
+      } catch (err) {
+        console.error(err);
+        content.innerHTML = "<p style='text-align:center;color:#888;'>Failed to load streams.</p>";
+      }
+    }
+
+    function displayStreams(categories) {
+      content.innerHTML = "";
+      categories.forEach(category => {
+        const section = document.createElement("section");
+        const heading = document.createElement("h2");
+        heading.className = "category";
+        heading.textContent = category.category;
+        section.appendChild(heading);
+
+        const grid = document.createElement("div");
+        grid.className = "grid";
+
+        category.streams.forEach(stream => {
+          const div = document.createElement("div");
+          div.className = "event";
+          div.innerHTML = `
+            <img loading="lazy" src="${stream.poster}" alt="${stream.name}">
+            <div class="info">
+              <h3>${stream.name}</h3>
+              <p>${stream.tag}</p>
+            </div>
+          `;
+          div.onclick = () => {
+            player.src = stream.iframe;
+            playerContainer.style.display = "flex";
+          };
+          grid.appendChild(div);
+        });
+
+        section.appendChild(grid);
+        content.appendChild(section);
+      });
+    }
+
+    // Search and filter
+    searchBar.addEventListener("input", e => {
+      const term = e.target.value.toLowerCase();
+      if (!term) return displayStreams(allStreams);
+
+      const filtered = allStreams
+        .map(cat => ({
+          category: cat.category,
+          streams: cat.streams.filter(s =>
+            s.name.toLowerCase().includes(term) ||
+            s.tag.toLowerCase().includes(term) ||
+            cat.category.toLowerCase().includes(term)
+          )
+        }))
+        .filter(cat => cat.streams.length > 0);
+
+      displayStreams(filtered);
+    });
+
+    closeBtn.onclick = () => {
+      player.src = "";
+      playerContainer.style.display = "none";
+    };
+
+    loadStreams();
+  </script>
+</body>
+</html>
