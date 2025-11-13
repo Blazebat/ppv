@@ -183,12 +183,23 @@
       try {
         const res = await fetch(api);
         const json = await res.json();
-        allStreams = json.streams;
+        // Remove 24/7 streams
+        allStreams = json.streams
+          .map(cat => ({
+            category: cat.category,
+            streams: cat.streams.filter(s => !is247(s))
+          }))
+          .filter(cat => cat.streams.length > 0);
         displayStreams(allStreams);
       } catch (err) {
         console.error(err);
         content.innerHTML = "<p style='text-align:center;color:#888;'>Failed to load streams.</p>";
       }
+    }
+
+    function is247(stream) {
+      const text = `${stream.name} ${stream.tag} ${stream.category}`.toLowerCase();
+      return text.includes("24/7") || text.includes("247");
     }
 
     function isLive(stream) {
@@ -199,7 +210,6 @@
     function displayStreams(categories) {
       content.innerHTML = "";
 
-      // Flatten and sort live first
       const liveNow = [];
       const upcoming = [];
 
@@ -228,7 +238,6 @@
         content.appendChild(liveSection);
       }
 
-      // Group upcoming by category
       const grouped = {};
       upcoming.forEach(s => {
         if (!grouped[s.category]) grouped[s.category] = [];
