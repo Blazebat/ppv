@@ -1,256 +1,305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PPV Streams</title>
-  <link rel="icon" href="logo.png">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #0a0a0a;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background-color: #111;
-      padding: 15px;
-    }
-    header img {
-      height: 50px;
-      margin-bottom: 10px;
-    }
-    #searchBar {
-      width: 90%;
-      max-width: 500px;
-      padding: 10px;
-      border-radius: 25px;
-      border: none;
-      background: #1b1b1b;
-      color: #fff;
-      font-size: 14px;
-      outline: none;
-    }
-    h2.category-title {
-      margin: 20px 20px 10px;
-      font-size: 18px;
-      border-left: 4px solid #e50914;
-      padding-left: 10px;
-    }
-    .container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 15px;
-      padding: 0 20px 20px;
-    }
-    .card {
-      background: #1a1a1a;
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
-      transition: transform 0.3s ease;
-      cursor: pointer;
-    }
-    .card:hover {
-      transform: scale(1.03);
-    }
-    .card img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-    }
-    .info {
-      padding: 10px;
-    }
-    .category {
-      font-size: 13px;
-      opacity: 0.8;
-    }
-    .title {
-      font-size: 16px;
-      font-weight: bold;
-      margin: 5px 0;
-    }
-    .timer {
-      font-size: 14px;
-      color: #ffd700;
-      transition: color 0.5s ease;
-    }
-    .timer.soon {
-      color: #00ff99;
-      animation: pulse 1s infinite;
-    }
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.6; }
-      100% { opacity: 1; }
-    }
-    .live {
-      background: red;
-      color: white;
-      font-size: 12px;
-      padding: 3px 6px;
-      border-radius: 5px;
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      font-weight: bold;
-    }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 9999;
-      display: none;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPV Streams</title>
+<link rel="icon" href="logo.png">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #0a0a0a;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #111;
+    padding: 15px;
+  }
+  header img {
+    height: 50px;
+    margin-bottom: 10px;
+  }
+  #searchBar {
+    width: 90%;
+    max-width: 500px;
+    padding: 10px;
+    border-radius: 25px;
+    border: none;
+    background: #1b1b1b;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+  }
+  h2.category-title {
+    margin: 20px 20px 10px;
+    font-size: 18px;
+    border-left: 4px solid #e50914;
+    padding-left: 10px;
+  }
+  .container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    padding: 0 20px 20px;
+  }
+  .card {
+    background: #1a1a1a;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+  }
+  .card:hover {
+    transform: scale(1.03);
+  }
+  .card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+  }
+  .info {
+    padding: 10px;
+  }
+  .category {
+    font-size: 13px;
+    opacity: 0.8;
+  }
+  .title {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 5px 0;
+  }
+  .timer {
+    font-size: 14px;
+    color: #ffd700;
+    transition: color 0.5s ease;
+  }
+  .timer.soon {
+    color: #00ff99;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+  .live {
+    background: red;
+    color: white;
+    font-size: 12px;
+    padding: 3px 6px;
+    border-radius: 5px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-weight: bold;
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    display: none;
+  }
+</style>
 </head>
 <body>
-  <header>
-    <img src="logo.png" alt="Logo">
-    <input type="text" id="searchBar" placeholder="Search streams...">
-  </header>
+<header>
+  <img src="logo.png" alt="Logo">
+  <input type="text" id="searchBar" placeholder="Search streams...">
+</header>
 
-  <div id="streamsContainer"></div>
+<div id="streamsContainer"></div>
+<iframe id="player" allowfullscreen allow="encrypted-media; picture-in-picture;"></iframe>
 
-  <iframe id="player" allowfullscreen allow="encrypted-media; picture-in-picture;"></iframe>
+<script>
+let allStreams = [];
+let intervalId;
 
-  <script>
-    let allStreams = [];
+async function loadStreams() {
+  const res = await fetch("https://ppv.to/api/streams");
+  const data = await res.json();
 
-    async function loadStreams() {
-      const res = await fetch("https://ppv.to/api/streams");
-      const data = await res.json();
-
-      allStreams = [];
-      data.streams.forEach(cat => {
-        const filtered = cat.streams.filter(s => !s.name.toLowerCase().includes("24/7") && !s.name.toLowerCase().includes("master stream test"));
-        if (filtered.length > 0) {
-          allStreams.push({ category: cat.category, streams: filtered });
-        }
-      });
-
-      displayStreams(allStreams);
+  allStreams = [];
+  data.streams.forEach(cat => {
+    const filtered = cat.streams.filter(s => 
+      !s.name.toLowerCase().includes("24/7") &&
+      !s.name.toLowerCase().includes("master stream test")
+    );
+    if (filtered.length > 0) {
+      allStreams.push({ category: cat.category, streams: filtered });
     }
+  });
 
-    function displayStreams(streamsGroups) {
-      const container = document.getElementById("streamsContainer");
-      container.innerHTML = "";
-      const now = Math.floor(Date.now() / 1000);
+  displayStreams(allStreams);
+  startCountdownUpdates();
+}
 
-      streamsGroups.forEach(group => {
-        const sectionTitle = document.createElement("h2");
-        sectionTitle.className = "category-title";
-        sectionTitle.textContent = group.category;
-        container.appendChild(sectionTitle);
+function displayStreams(streamsGroups) {
+  const container = document.getElementById("streamsContainer");
+  container.innerHTML = "";
+  const now = Math.floor(Date.now()/1000);
 
-        const sectionGrid = document.createElement("div");
-        sectionGrid.className = "container";
+  // Collect live streams
+  const liveStreams = [];
+  const upcomingGroups = [];
 
-        // Sort live first
-        group.streams.sort((a,b) => {
-          const aLive = now >= a.starts_at && now <= a.ends_at;
-          const bLive = now >= b.starts_at && now <= b.ends_at;
-          if(aLive && !bLive) return -1;
-          if(!aLive && bLive) return 1;
-          return a.starts_at - b.starts_at;
-        });
-
-        group.streams.forEach(stream => {
-          const isLive = now >= stream.starts_at && now <= stream.ends_at;
-
-          const card = document.createElement("div");
-          card.className = "card";
-
-          const img = document.createElement("img");
-          img.src = stream.poster;
-
-          const info = document.createElement("div");
-          info.className = "info";
-
-          const catLabel = document.createElement("div");
-          catLabel.className = "category";
-          catLabel.textContent = stream.category;
-
-          const title = document.createElement("div");
-          title.className = "title";
-          title.textContent = stream.name;
-
-          const timer = document.createElement("div");
-          timer.className = "timer";
-
-          if(isLive){
-            const liveTag = document.createElement("div");
-            liveTag.className = "live";
-            liveTag.textContent = "LIVE NOW";
-            card.appendChild(liveTag);
-          } else {
-            updateCountdown(timer, stream.starts_at);
-            setInterval(()=>updateCountdown(timer, stream.starts_at), 1000);
-          }
-
-          info.appendChild(catLabel);
-          info.appendChild(title);
-          info.appendChild(timer);
-          card.appendChild(img);
-          card.appendChild(info);
-          card.addEventListener("click", ()=>openPlayer(stream.iframe));
-          sectionGrid.appendChild(card);
-        });
-
-        container.appendChild(sectionGrid);
-      });
-    }
-
-    function updateCountdown(el, startTime){
-      const now = Math.floor(Date.now()/1000);
-      const diff = startTime - now;
-
-      if(diff <= 0){
-        el.textContent = "Starting now!";
-        el.classList.add("soon");
-        return;
+  streamsGroups.forEach(group => {
+    const upcoming = [];
+    group.streams.forEach(s => {
+      const isLive = now >= s.starts_at && now <= s.ends_at;
+      if (isLive) {
+        liveStreams.push({...s, category: group.category});
+      } else {
+        upcoming.push(s);
       }
+    });
+    if(upcoming.length>0) upcomingGroups.push({category: group.category, streams: upcoming});
+  });
 
-      const days = Math.floor(diff/86400);
-      const hours = Math.floor((diff%86400)/3600);
-      const mins = Math.floor((diff%3600)/60);
-      const secs = diff % 60;
+  // LIVE NOW Section
+  if(liveStreams.length>0){
+    const liveTitle = document.createElement("h2");
+    liveTitle.className = "category-title";
+    liveTitle.textContent = "🔴 LIVE NOW";
+    container.appendChild(liveTitle);
 
-      el.textContent = `Starts in ${days}d ${hours}h ${mins}m ${secs}s`;
+    const liveGrid = document.createElement("div");
+    liveGrid.className = "container";
+    liveStreams.forEach(stream=>{
+      const card = createCard(stream, true);
+      liveGrid.appendChild(card);
+    });
+    container.appendChild(liveGrid);
+  }
 
-      if(diff <= 600) el.classList.add("soon");
-      else el.classList.remove("soon");
-    }
+  // Upcoming groups
+  upcomingGroups.forEach(group=>{
+    const sectionTitle = document.createElement("h2");
+    sectionTitle.className = "category-title";
+    sectionTitle.textContent = group.category;
+    container.appendChild(sectionTitle);
 
-    function openPlayer(url){
-      const iframe = document.getElementById("player");
-      iframe.src = url + "?noads=true";
-      iframe.style.display = "block";
-      document.body.style.overflow = "hidden";
-    }
+    const sectionGrid = document.createElement("div");
+    sectionGrid.className = "container";
 
-    const searchBar = document.getElementById("searchBar");
-    searchBar.addEventListener("input", ()=>{
-      const term = searchBar.value.toLowerCase();
-      if(!term) return displayStreams(allStreams);
-
-      const filtered = allStreams.map(group=>{
-        const streams = group.streams.filter(s => s.name.toLowerCase().includes(term) || s.tag.toLowerCase().includes(term) || group.category.toLowerCase().includes(term));
-        return {category: group.category, streams};
-      }).filter(g=>g.streams.length>0);
-
-      displayStreams(filtered);
+    group.streams.forEach(stream=>{
+      const card = createCard(stream,false);
+      sectionGrid.appendChild(card);
     });
 
-    loadStreams();
-  </script>
+    container.appendChild(sectionGrid);
+  });
+}
+
+function createCard(stream, isLive){
+  const card = document.createElement("div");
+  card.className = "card";
+  card.dataset.startTime = stream.starts_at;
+
+  const img = document.createElement("img");
+  img.src = stream.poster;
+
+  const info = document.createElement("div");
+  info.className = "info";
+
+  const catLabel = document.createElement("div");
+  catLabel.className = "category";
+  catLabel.textContent = stream.category;
+
+  const title = document.createElement("div");
+  title.className = "title";
+  title.textContent = stream.name;
+
+  const timer = document.createElement("div");
+  timer.className = "timer";
+
+  if(isLive){
+    const liveTag = document.createElement("div");
+    liveTag.className = "live";
+    liveTag.textContent = "LIVE";
+    card.appendChild(liveTag);
+    timer.textContent = "";
+  } else {
+    updateCountdown(timer, stream.starts_at);
+  }
+
+  info.appendChild(catLabel);
+  info.appendChild(title);
+  info.appendChild(timer);
+  card.appendChild(img);
+  card.appendChild(info);
+
+  card.addEventListener("click", ()=>openPlayer(stream.iframe));
+  return card;
+}
+
+function updateCountdown(el,startTime){
+  const now = Math.floor(Date.now()/1000);
+  const diff = startTime - now;
+  if(diff<=0){
+    el.textContent="Starting now!";
+    el.classList.add("soon");
+    return true; // stream should go live
+  }
+  const days=Math.floor(diff/86400);
+  const hours=Math.floor((diff%86400)/3600);
+  const mins=Math.floor((diff%3600)/60);
+  const secs=diff%60;
+  el.textContent=`Starts in ${days}d ${hours}h ${mins}m ${secs}s`;
+  if(diff<=600) el.classList.add("soon");
+  else el.classList.remove("soon");
+  return false;
+}
+
+function startCountdownUpdates(){
+  if(intervalId) clearInterval(intervalId);
+  intervalId = setInterval(()=>{
+    let changed = false;
+    document.querySelectorAll(".card").forEach(card=>{
+      const timer = card.querySelector(".timer");
+      if(timer){
+        const startTime = parseInt(card.dataset.startTime);
+        const shouldLive = updateCountdown(timer,startTime);
+        if(shouldLive && !card.querySelector(".live")){
+          changed = true;
+        }
+      }
+    });
+    if(changed) displayStreams(allStreams); // re-render to move new live streams on top
+  },1000);
+}
+
+function openPlayer(url){
+  const iframe=document.getElementById("player");
+  iframe.src=url+"?noads=true";
+  iframe.style.display="block";
+  document.body.style.overflow="hidden";
+}
+
+const searchBar=document.getElementById("searchBar");
+searchBar.addEventListener("input",()=>{
+  const term=searchBar.value.toLowerCase();
+  if(!term) return displayStreams(allStreams);
+
+  const filtered=allStreams.map(group=>{
+    const streams=group.streams.filter(s => s.name.toLowerCase().includes(term) || s.tag.toLowerCase().includes(term) || group.category.toLowerCase().includes(term));
+    return {category:group.category, streams};
+  }).filter(g=>g.streams.length>0);
+
+  displayStreams(filtered);
+});
+
+loadStreams();
+</script>
 </body>
 </html>
