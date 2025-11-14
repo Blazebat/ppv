@@ -1,12 +1,13 @@
 name: Run PPV Script
 
-# Triggers: on push to main branch and every 6 hours
+# Triggers: on push, scheduled, and manual
 on:
   push:
     branches:
       - main
   schedule:
     - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   run-ppv:
