@@ -90,33 +90,41 @@ async def grab_m3u8_from_iframe(page, iframe_url):
         if ".m3u8" in response.url.lower():
             found_streams.add(response.url)
 
-    # Add a listener (cannot remove, so let it expire naturally)
     page.on("response", handle_response)
 
-    print(f"🌐 Navigating to iframe: {iframe_url}")
+    # Load the parent page instead of going directly to iframe
+    parent_url = "https://ppv.to/"  # base page containing iframe
+    print(f"🌐 Loading parent page: {parent_url}")
     try:
-        await page.goto(iframe_url, timeout=15000)
+        await page.goto(parent_url, timeout=15000)
     except Exception as e:
-        print(f"❌ Failed to load iframe: {e}")
+        print(f"❌ Failed to load parent page: {e}")
         return set()
 
-    await asyncio.sleep(2)
-
-    # Attempt clicking center of page to trigger streams
+    # Wait for iframe element to appear
     try:
+        await page.wait_for_selector(f'iframe[src*="{iframe_url.split("/")[-1]}"]', timeout=10000)
+        frame = page.frame(url=lambda url: iframe_url in url)
+        if frame is None:
+            print("❌ Iframe not found on page")
+            return set()
+
+        # Try clicking inside iframe to trigger streams
         box = page.viewport_size or {"width": 1280, "height": 720}
         cx, cy = box["width"] / 2, box["height"] / 2
         for i in range(4):
             if found_streams:
                 break
-            print(f"🖱️ Click #{i + 1}")
+            print(f"🖱️ Click #{i + 1} inside iframe")
             try:
-                await page.mouse.click(cx, cy)
+                await frame.mouse.click(cx, cy)
             except Exception:
                 pass
             await asyncio.sleep(0.3)
+
     except Exception as e:
-        print(f"❌ Mouse click error: {e}")
+        print(f"❌ Iframe handling error: {e}")
+        return set()
 
     print("⏳ Waiting 5s for final stream load...")
     await asyncio.sleep(5)
@@ -153,7 +161,7 @@ def build_m3u(streams, url_map):
         logo = CATEGORY_LOGOS.get(orig_category, "")
         tvg_id = CATEGORY_TVG_IDS.get(orig_category, "Sports.Dummy.us")
 
-        url = next(iter(urls))  # Use first valid URL
+        url = next(iter(urls))
 
         lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{final_group}",{s["name"]}')
         lines.extend(CUSTOM_HEADERS)
@@ -176,7 +184,7 @@ async def main():
             if iframe:
                 streams.append({"name": name, "iframe": iframe, "category": cat})
 
-    # Deduplicate by name
+    # Deduplicate
     seen_names = set()
     deduped_streams = []
     for s in streams:
@@ -192,7 +200,9 @@ async def main():
 
     async with async_playwright() as p:
         browser = await p.firefox.launch(headless=True)
-        context = await browser.new_context()
+        context = await browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0"
+        )
         page = await context.new_page()
 
         url_map = {}
