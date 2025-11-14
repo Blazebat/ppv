@@ -2,8 +2,6 @@ import asyncio
 from playwright.async_api import async_playwright
 import aiohttp
 from datetime import datetime
-from zoneinfo import ZoneInfo
-import platform
 
 API_URL = "https://ppv.to/api/streams"
 
@@ -61,6 +59,7 @@ GROUP_RENAME_MAP = {
     "American Football": "PPVLand - NFL Action"
 }
 
+
 async def check_m3u8_url(url):
     try:
         headers = {
@@ -76,11 +75,13 @@ async def check_m3u8_url(url):
         print(f"❌ Error checking {url}: {e}")
         return False
 
+
 async def get_streams():
     async with aiohttp.ClientSession() as session:
         async with session.get(API_URL) as resp:
             resp.raise_for_status()
             return await resp.json()
+
 
 async def grab_m3u8_from_iframe(page, iframe_url):
     found_streams = set()
@@ -89,14 +90,14 @@ async def grab_m3u8_from_iframe(page, iframe_url):
         if ".m3u8" in response.url.lower():
             found_streams.add(response.url)
 
+    # Add a listener (cannot remove, so let it expire naturally)
     page.on("response", handle_response)
-    print(f"🌐 Navigating to iframe: {iframe_url}")
 
+    print(f"🌐 Navigating to iframe: {iframe_url}")
     try:
         await page.goto(iframe_url, timeout=15000)
     except Exception as e:
         print(f"❌ Failed to load iframe: {e}")
-        page.off("response", handle_response)
         return set()
 
     await asyncio.sleep(2)
@@ -119,7 +120,6 @@ async def grab_m3u8_from_iframe(page, iframe_url):
 
     print("⏳ Waiting 5s for final stream load...")
     await asyncio.sleep(5)
-    page.off("response", handle_response)
 
     # Validate URLs
     valid_urls = set()
@@ -129,6 +129,7 @@ async def grab_m3u8_from_iframe(page, iframe_url):
         else:
             print(f"❌ Invalid or unreachable URL: {url}")
     return valid_urls
+
 
 def build_m3u(streams, url_map):
     lines = ['#EXTM3U url-tvg="http://drewlive24.duckdns.org:8081/merged2_epg.xml.gz"']
@@ -159,6 +160,7 @@ def build_m3u(streams, url_map):
         lines.append(url)
 
     return "\n".join(lines)
+
 
 async def main():
     data = await get_streams()
@@ -210,6 +212,7 @@ async def main():
         f.write(playlist)
 
     print(f"✅ Done! Playlist saved as PPVLand.m3u8 at {datetime.utcnow().isoformat()} UTC")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
