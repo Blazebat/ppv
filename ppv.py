@@ -64,7 +64,7 @@ GROUP_RENAME_MAP = {
 async def check_m3u8_url(url):
     try:
         headers = {
-            "User-Agent": "Mozilla/5.0",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0",
             "Referer": "https://ppv.to/",
             "Origin": "https://ppv.to"
         }
@@ -86,7 +86,7 @@ async def grab_m3u8_from_iframe(page, iframe_url):
     found_streams = set()
 
     def handle_response(response):
-        if ".m3u8" in response.url:
+        if ".m3u8" in response.url.lower():
             found_streams.add(response.url)
 
     page.on("response", handle_response)
@@ -96,11 +96,12 @@ async def grab_m3u8_from_iframe(page, iframe_url):
         await page.goto(iframe_url, timeout=15000)
     except Exception as e:
         print(f"❌ Failed to load iframe: {e}")
-        page.remove_listener("response", handle_response)
+        page.off("response", handle_response)
         return set()
 
     await asyncio.sleep(2)
 
+    # Attempt clicking center of page to trigger streams
     try:
         box = page.viewport_size or {"width": 1280, "height": 720}
         cx, cy = box["width"] / 2, box["height"] / 2
@@ -118,8 +119,9 @@ async def grab_m3u8_from_iframe(page, iframe_url):
 
     print("⏳ Waiting 5s for final stream load...")
     await asyncio.sleep(5)
-    page.remove_listener("response", handle_response)
+    page.off("response", handle_response)
 
+    # Validate URLs
     valid_urls = set()
     for url in found_streams:
         if await check_m3u8_url(url):
@@ -135,7 +137,7 @@ def build_m3u(streams, url_map):
     for s in streams:
         name_lower = s["name"].strip().lower()
         if name_lower in seen_names:
-            continue  # skip duplicates by display name
+            continue
         seen_names.add(name_lower)
 
         unique_key = f"{s['name']}::{s['category']}::{s['iframe']}"
@@ -150,8 +152,7 @@ def build_m3u(streams, url_map):
         logo = CATEGORY_LOGOS.get(orig_category, "")
         tvg_id = CATEGORY_TVG_IDS.get(orig_category, "Sports.Dummy.us")
 
-        # Use first valid URL only to avoid multiple entries with same name
-        url = next(iter(urls))
+        url = next(iter(urls))  # Use first valid URL
 
         lines.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{final_group}",{s["name"]}')
         lines.extend(CUSTOM_HEADERS)
@@ -173,7 +174,7 @@ async def main():
             if iframe:
                 streams.append({"name": name, "iframe": iframe, "category": cat})
 
-    # Deduplicate streams by name (case-insensitive) before scraping
+    # Deduplicate by name
     seen_names = set()
     deduped_streams = []
     for s in streams:
