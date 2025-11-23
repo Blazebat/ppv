@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PPV Streams</title>
 <link rel="icon" href="logo.png">
+
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -84,10 +85,10 @@
     color: #00ff99;
     animation: pulse 1s infinite;
   }
-  .viewers {
+  .schedule, .channels, .viewers {
+    margin-top: 5px;
     font-size: 13px;
-    opacity: 0.8;
-    margin-top: 3px;
+    opacity: 0.9;
   }
   @keyframes pulse {
     0% { opacity: 1; }
@@ -135,6 +136,7 @@
   }
 </style>
 </head>
+
 <body>
 <header>
   <img src="logo.png" alt="Logo">
@@ -152,13 +154,14 @@
 let allStreams = [];
 let intervalId;
 
+// Load streams
 async function loadStreams() {
   const res = await fetch("https://ppv.to/api/streams");
   const data = await res.json();
 
   allStreams = [];
   data.streams.forEach(cat => {
-    const filtered = cat.streams.filter(s => 
+    const filtered = cat.streams.filter(s =>
       !s.name.toLowerCase().includes("24/7") &&
       !s.name.toLowerCase().includes("master stream test")
     );
@@ -171,10 +174,11 @@ async function loadStreams() {
   startCountdownUpdates();
 }
 
+// Display streams
 function displayStreams(streamsGroups) {
   const container = document.getElementById("streamsContainer");
   container.innerHTML = "";
-  const now = Math.floor(Date.now()/1000);
+  const now = Math.floor(Date.now() / 1000);
 
   const liveStreams = [];
   const upcomingGroups = [];
@@ -183,17 +187,18 @@ function displayStreams(streamsGroups) {
     const upcoming = [];
     group.streams.forEach(s => {
       const isLive = now >= s.starts_at && now <= s.ends_at;
+      s.category = group.category;
       if (isLive) {
-        liveStreams.push({...s, category: group.category});
+        liveStreams.push(s);
       } else {
         upcoming.push(s);
       }
     });
-    if(upcoming.length>0) upcomingGroups.push({category: group.category, streams: upcoming});
+    if (upcoming.length > 0) upcomingGroups.push({ category: group.category, streams: upcoming });
   });
 
-  // LIVE NOW Section
-  if(liveStreams.length>0){
+  // LIVE NOW section
+  if (liveStreams.length > 0) {
     const liveTitle = document.createElement("h2");
     liveTitle.className = "category-title";
     liveTitle.textContent = "🔴 LIVE NOW";
@@ -201,37 +206,37 @@ function displayStreams(streamsGroups) {
 
     const liveGrid = document.createElement("div");
     liveGrid.className = "container";
-    liveStreams.forEach(stream=>{
-      const card = createCard(stream, true);
-      liveGrid.appendChild(card);
+
+    liveStreams.forEach(stream => {
+      liveGrid.appendChild(createCard(stream, true));
     });
+
     container.appendChild(liveGrid);
   }
 
-  // Upcoming groups
-  upcomingGroups.forEach(group=>{
-    const sectionTitle = document.createElement("h2");
-    sectionTitle.className = "category-title";
-    sectionTitle.textContent = group.category;
-    container.appendChild(sectionTitle);
+  // Upcoming sections
+  upcomingGroups.forEach(group => {
+    const title = document.createElement("h2");
+    title.className = "category-title";
+    title.textContent = group.category;
+    container.appendChild(title);
 
-    const sectionGrid = document.createElement("div");
-    sectionGrid.className = "container";
+    const grid = document.createElement("div");
+    grid.className = "container";
 
-    group.streams.forEach(stream=>{
-      const card = createCard(stream,false);
-      sectionGrid.appendChild(card);
+    group.streams.forEach(stream => {
+      grid.appendChild(createCard(stream, false));
     });
 
-    container.appendChild(sectionGrid);
+    container.appendChild(grid);
   });
 }
 
-function createCard(stream, isLive){
+// Create card with Schedule + Channels
+function createCard(stream, isLive) {
   const card = document.createElement("div");
   card.className = "card";
   card.dataset.startTime = stream.starts_at;
-  card.dataset.viewers = stream.viewers || 0;
 
   const img = document.createElement("img");
   img.src = stream.poster;
@@ -239,13 +244,27 @@ function createCard(stream, isLive){
   const info = document.createElement("div");
   info.className = "info";
 
-  const catLabel = document.createElement("div");
-  catLabel.className = "category";
-  catLabel.textContent = stream.category;
+  const category = document.createElement("div");
+  category.className = "category";
+  category.textContent = stream.category;
 
   const title = document.createElement("div");
   title.className = "title";
   title.textContent = stream.name;
+
+  // Philippines time
+  const startPH = new Date(stream.starts_at * 1000).toLocaleString("en-PH", { timeZone: "Asia/Manila" });
+  const endPH = new Date(stream.ends_at * 1000).toLocaleString("en-PH", { timeZone: "Asia/Manila" });
+
+  const schedule = document.createElement("div");
+  schedule.className = "schedule";
+  schedule.textContent = `📅 ${startPH} — ${endPH}`;
+
+  // Channels
+  const channelNames = (stream.channels || []).map(c => c.name).join(", ");
+  const channels = document.createElement("div");
+  channels.className = "channels";
+  channels.textContent = `📺 Channels: ${channelNames || "N/A"}`;
 
   const viewers = document.createElement("div");
   viewers.className = "viewers";
@@ -254,111 +273,100 @@ function createCard(stream, isLive){
   const timer = document.createElement("div");
   timer.className = "timer";
 
-  if(isLive){
+  if (isLive) {
     const liveTag = document.createElement("div");
     liveTag.className = "live";
     liveTag.textContent = "LIVE";
     card.appendChild(liveTag);
-    timer.textContent = "";
   } else {
     updateCountdown(timer, stream.starts_at);
   }
 
-  info.appendChild(catLabel);
+  info.appendChild(category);
   info.appendChild(title);
+  info.appendChild(schedule);
+  info.appendChild(channels);
   info.appendChild(viewers);
   info.appendChild(timer);
+
   card.appendChild(img);
   card.appendChild(info);
 
-  card.addEventListener("click", ()=>openPlayer(stream.iframe));
+  // Default channel (first)
+  const defaultChannel = (stream.channels && stream.channels.length > 0)
+    ? stream.channels[0].iframe
+    : stream.iframe;
+
+  card.addEventListener("click", () => openPlayer(defaultChannel));
+
   return card;
 }
 
-async function updateLiveViewers(){
-  try{
-    const res = await fetch("https://ppv.to/api/streams");
-    const data = await res.json();
-    const now = Math.floor(Date.now()/1000);
-
-    data.streams.forEach(group=>{
-      group.streams.forEach(stream=>{
-        if(now >= stream.starts_at && now <= stream.ends_at){
-          const card = [...document.querySelectorAll(".card")].find(c => c.querySelector(".title").textContent===stream.name);
-          if(card){
-            const viewersEl = card.querySelector(".viewers");
-            viewersEl.textContent = `👁️ Viewers: ${stream.viewers || 0}`;
-          }
-        }
-      });
-    });
-  }catch(e){
-    console.error("Failed to update viewers:", e);
-  }
-}
-
-function updateCountdown(el,startTime){
+function updateCountdown(el, startTime) {
   const now = Math.floor(Date.now()/1000);
   const diff = startTime - now;
-  if(diff<=0){
-    el.textContent="Happening now!";
+
+  if (diff <= 0) {
+    el.textContent = "Happening now!";
     el.classList.add("soon");
     return true;
   }
-  const days=Math.floor(diff/86400);
-  const hours=Math.floor((diff%86400)/3600);
-  const mins=Math.floor((diff%3600)/60);
-  const secs=diff%60;
-  el.textContent=`Starts in ${days}d ${hours}h ${mins}m ${secs}s`;
-  if(diff<=600) el.classList.add("soon");
+
+  const days = Math.floor(diff / 86400);
+  const hrs = Math.floor((diff % 86400) / 3600);
+  const mins = Math.floor((diff % 3600) / 60);
+  const secs = diff % 60;
+
+  el.textContent = `Starts in ${days}d ${hrs}h ${mins}m ${secs}s`;
+
+  if (diff <= 600) el.classList.add("soon");
   else el.classList.remove("soon");
+
   return false;
 }
 
-function startCountdownUpdates(){
-  if(intervalId) clearInterval(intervalId);
-  intervalId = setInterval(()=>{
+function startCountdownUpdates() {
+  if (intervalId) clearInterval(intervalId);
+  intervalId = setInterval(() => {
     let changed = false;
-    document.querySelectorAll(".card").forEach(card=>{
+    document.querySelectorAll(".card").forEach(card => {
       const timer = card.querySelector(".timer");
-      if(timer){
-        const startTime = parseInt(card.dataset.startTime);
-        const shouldLive = updateCountdown(timer,startTime);
-        if(shouldLive && !card.querySelector(".live")){
-          changed = true;
-        }
+      if (timer) {
+        const start = parseInt(card.dataset.startTime);
+        const shouldLive = updateCountdown(timer, start);
+        if (shouldLive && !card.querySelector(".live")) changed = true;
       }
     });
-    if(changed) displayStreams(allStreams);
-    updateLiveViewers(); // refresh viewers count every second
-  },1000);
+
+    if (changed) displayStreams(allStreams);
+  }, 1000);
 }
 
-function openPlayer(url){
-  const container=document.getElementById("playerContainer");
-  const iframe=document.getElementById("player");
-  iframe.src=url+"?noads=true";
-  container.style.display="block";
-  document.body.style.overflow="hidden";
+function openPlayer(url) {
+  document.getElementById("playerContainer").style.display = "block";
+  document.getElementById("player").src = url + "?noads=true";
+  document.body.style.overflow = "hidden";
 }
 
-document.getElementById("closeBtn").addEventListener("click",()=>{
-  const container=document.getElementById("playerContainer");
-  const iframe=document.getElementById("player");
-  iframe.src="";
-  container.style.display="none";
-  document.body.style.overflow="auto";
+document.getElementById("closeBtn").addEventListener("click", () => {
+  document.getElementById("player").src = "";
+  document.getElementById("playerContainer").style.display = "none";
+  document.body.style.overflow = "auto";
 });
 
-const searchBar=document.getElementById("searchBar");
-searchBar.addEventListener("input",()=>{
-  const term=searchBar.value.toLowerCase();
-  if(!term) return displayStreams(allStreams);
+// Search bar filtering
+document.getElementById("searchBar").addEventListener("input", () => {
+  const term = searchBar.value.toLowerCase();
+  if (!term) return displayStreams(allStreams);
 
-  const filtered=allStreams.map(group=>{
-    const streams=group.streams.filter(s => s.name.toLowerCase().includes(term) || s.tag.toLowerCase().includes(term) || group.category.toLowerCase().includes(term));
-    return {category:group.category, streams};
-  }).filter(g=>g.streams.length>0);
+  const filtered = allStreams.map(group => {
+    const streams = group.streams.filter(s =>
+      s.name.toLowerCase().includes(term) ||
+      s.tag.toLowerCase().includes(term) ||
+      group.category.toLowerCase().includes(term)
+    );
+    return { category: group.category, streams };
+  }).filter(g => g.streams.length > 0);
 
   displayStreams(filtered);
 });
