@@ -7,132 +7,46 @@
 <link rel="icon" href="logo.png">
 
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #0a0a0a;
-    color: #fff;
-    margin: 0;
-    padding: 0;
-  }
-  header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #111;
-    padding: 15px;
-  }
-  header img {
-    height: 50px;
-    margin-bottom: 10px;
-  }
+  body { font-family: Arial, sans-serif; background-color: #0a0a0a; color: #fff; margin: 0; padding: 0; }
+  header { display: flex; flex-direction: column; align-items: center; background-color: #111; padding: 15px; }
+  header img { height: 50px; margin-bottom: 10px; }
   #searchBar {
-    width: 90%;
-    max-width: 500px;
-    padding: 10px;
-    border-radius: 25px;
-    border: none;
-    background: #1b1b1b;
-    color: #fff;
-    font-size: 14px;
-    outline: none;
+    width: 90%; max-width: 500px; padding: 10px; border-radius: 25px;
+    border: none; background: #1b1b1b; color: #fff; font-size: 14px; outline: none;
   }
   h2.category-title {
-    margin: 20px 20px 10px;
-    font-size: 18px;
-    border-left: 4px solid #e50914;
-    padding-left: 10px;
+    margin: 20px 20px 10px; font-size: 18px; border-left: 4px solid #e50914; padding-left: 10px;
   }
   .container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 15px;
-    padding: 0 20px 20px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px; padding: 0 20px 20px;
   }
   .card {
-    background: #1a1a1a;
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
-    transition: transform 0.3s ease;
-    cursor: pointer;
+    background: #1a1a1a; border-radius: 10px; overflow: hidden;
+    position: relative; transition: transform 0.3s ease; cursor: pointer;
   }
-  .card:hover {
-    transform: scale(1.03);
-  }
-  .card img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-  }
-  .info {
-    padding: 10px;
-  }
-  .category {
-    font-size: 13px;
-    opacity: 0.8;
-  }
-  .title {
-    font-size: 16px;
-    font-weight: bold;
-    margin: 5px 0;
-  }
-  .timer {
-    font-size: 14px;
-    color: #ffd700;
-    transition: color 0.5s ease;
-  }
-  .timer.soon {
-    color: #00ff99;
-    animation: pulse 1s infinite;
-  }
-  .schedule, .channels, .viewers {
-    margin-top: 5px;
-    font-size: 13px;
-    opacity: 0.9;
-  }
-  @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.6; }
-    100% { opacity: 1; }
-  }
+  .card:hover { transform: scale(1.03); }
+  .card img { width: 100%; height: 180px; object-fit: cover; }
+  .info { padding: 10px; }
+  .category { font-size: 13px; opacity: 0.8; }
+  .title { font-size: 16px; font-weight: bold; margin: 5px 0; }
+  .timer { font-size: 14px; color: #ffd700; transition: color 0.5s ease; }
+  .timer.soon { color: #00ff99; animation: pulse 1s infinite; }
+  .schedule, .channel, .viewers { margin-top: 5px; font-size: 13px; opacity: 0.9; }
+  @keyframes pulse { 0%{opacity:1;} 50%{opacity:.6;} 100%{opacity:1;} }
   .live {
-    background: red;
-    color: white;
-    font-size: 12px;
-    padding: 3px 6px;
-    border-radius: 5px;
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-weight: bold;
+    background: red; color: white; font-size: 12px; padding: 3px 6px;
+    border-radius: 5px; position: absolute; top: 10px; left: 10px; font-weight: bold;
   }
   #playerContainer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: none;
-    background: #000;
-    z-index: 9999;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    display: none; background: #000; z-index: 9999;
   }
-  #player {
-    width: 100%;
-    height: 100%;
-    border: none;
-  }
+  #player { width: 100%; height: 100%; border: none; }
   #closeBtn {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    background: rgba(255,0,0,0.9);
-    color: #fff;
-    border: none;
-    padding: 10px 15px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    z-index: 10000;
+    position: absolute; top: 15px; right: 20px; background: rgba(255,0,0,0.9);
+    color: #fff; border: none; padding: 10px 15px; font-size: 16px;
+    border-radius: 5px; cursor: pointer; z-index: 10000;
   }
 </style>
 </head>
@@ -154,7 +68,6 @@
 let allStreams = [];
 let intervalId;
 
-// Load streams
 async function loadStreams() {
   const res = await fetch("https://ppv.to/api/streams");
   const data = await res.json();
@@ -165,6 +78,7 @@ async function loadStreams() {
       !s.name.toLowerCase().includes("24/7") &&
       !s.name.toLowerCase().includes("master stream test")
     );
+
     if (filtered.length > 0) {
       allStreams.push({ category: cat.category, streams: filtered });
     }
@@ -174,31 +88,26 @@ async function loadStreams() {
   startCountdownUpdates();
 }
 
-// Display streams
-function displayStreams(streamsGroups) {
+function displayStreams(groups) {
   const container = document.getElementById("streamsContainer");
   container.innerHTML = "";
   const now = Math.floor(Date.now() / 1000);
 
-  const liveStreams = [];
+  const live = [];
   const upcomingGroups = [];
 
-  streamsGroups.forEach(group => {
+  groups.forEach(group => {
     const upcoming = [];
     group.streams.forEach(s => {
       const isLive = now >= s.starts_at && now <= s.ends_at;
       s.category = group.category;
-      if (isLive) {
-        liveStreams.push(s);
-      } else {
-        upcoming.push(s);
-      }
+      if (isLive) live.push(s);
+      else upcoming.push(s);
     });
     if (upcoming.length > 0) upcomingGroups.push({ category: group.category, streams: upcoming });
   });
 
-  // LIVE NOW section
-  if (liveStreams.length > 0) {
+  if (live.length > 0) {
     const liveTitle = document.createElement("h2");
     liveTitle.className = "category-title";
     liveTitle.textContent = "🔴 LIVE NOW";
@@ -206,15 +115,10 @@ function displayStreams(streamsGroups) {
 
     const liveGrid = document.createElement("div");
     liveGrid.className = "container";
-
-    liveStreams.forEach(stream => {
-      liveGrid.appendChild(createCard(stream, true));
-    });
-
+    live.forEach(s => liveGrid.appendChild(createCard(s, true)));
     container.appendChild(liveGrid);
   }
 
-  // Upcoming sections
   upcomingGroups.forEach(group => {
     const title = document.createElement("h2");
     title.className = "category-title";
@@ -223,16 +127,11 @@ function displayStreams(streamsGroups) {
 
     const grid = document.createElement("div");
     grid.className = "container";
-
-    group.streams.forEach(stream => {
-      grid.appendChild(createCard(stream, false));
-    });
-
+    group.streams.forEach(s => grid.appendChild(createCard(s, false)));
     container.appendChild(grid);
   });
 }
 
-// Create card with Schedule + Channels
 function createCard(stream, isLive) {
   const card = document.createElement("div");
   card.className = "card";
@@ -252,7 +151,7 @@ function createCard(stream, isLive) {
   title.className = "title";
   title.textContent = stream.name;
 
-  // Philippines time
+  // PHILIPPINES TIME
   const startPH = new Date(stream.starts_at * 1000).toLocaleString("en-PH", { timeZone: "Asia/Manila" });
   const endPH = new Date(stream.ends_at * 1000).toLocaleString("en-PH", { timeZone: "Asia/Manila" });
 
@@ -260,11 +159,10 @@ function createCard(stream, isLive) {
   schedule.className = "schedule";
   schedule.textContent = `📅 ${startPH} — ${endPH}`;
 
-  // Channels
-  const channelNames = (stream.channels || []).map(c => c.name).join(", ");
-  const channels = document.createElement("div");
-  channels.className = "channels";
-  channels.textContent = `📺 Channels: ${channelNames || "N/A"}`;
+  // CHANNEL FROM `tag`
+  const channelDiv = document.createElement("div");
+  channelDiv.className = "channel";
+  channelDiv.textContent = `📺 Channel: ${stream.tag}`;
 
   const viewers = document.createElement("div");
   viewers.className = "viewers";
@@ -285,25 +183,20 @@ function createCard(stream, isLive) {
   info.appendChild(category);
   info.appendChild(title);
   info.appendChild(schedule);
-  info.appendChild(channels);
+  info.appendChild(channelDiv);
   info.appendChild(viewers);
   info.appendChild(timer);
 
   card.appendChild(img);
   card.appendChild(info);
 
-  // Default channel (first)
-  const defaultChannel = (stream.channels && stream.channels.length > 0)
-    ? stream.channels[0].iframe
-    : stream.iframe;
-
-  card.addEventListener("click", () => openPlayer(defaultChannel));
+  card.addEventListener("click", () => openPlayer(stream.iframe));
 
   return card;
 }
 
 function updateCountdown(el, startTime) {
-  const now = Math.floor(Date.now()/1000);
+  const now = Math.floor(Date.now() / 1000);
   const diff = startTime - now;
 
   if (diff <= 0) {
@@ -318,7 +211,6 @@ function updateCountdown(el, startTime) {
   const secs = diff % 60;
 
   el.textContent = `Starts in ${days}d ${hrs}h ${mins}m ${secs}s`;
-
   if (diff <= 600) el.classList.add("soon");
   else el.classList.remove("soon");
 
@@ -327,13 +219,15 @@ function updateCountdown(el, startTime) {
 
 function startCountdownUpdates() {
   if (intervalId) clearInterval(intervalId);
+
   intervalId = setInterval(() => {
     let changed = false;
+
     document.querySelectorAll(".card").forEach(card => {
       const timer = card.querySelector(".timer");
       if (timer) {
-        const start = parseInt(card.dataset.startTime);
-        const shouldLive = updateCountdown(timer, start);
+        const startTime = parseInt(card.dataset.startTime);
+        const shouldLive = updateCountdown(timer, startTime);
         if (shouldLive && !card.querySelector(".live")) changed = true;
       }
     });
@@ -354,7 +248,6 @@ document.getElementById("closeBtn").addEventListener("click", () => {
   document.body.style.overflow = "auto";
 });
 
-// Search bar filtering
 document.getElementById("searchBar").addEventListener("input", () => {
   const term = searchBar.value.toLowerCase();
   if (!term) return displayStreams(allStreams);
