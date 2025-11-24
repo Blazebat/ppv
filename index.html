@@ -132,6 +132,19 @@ function displayStreams(groups) {
   });
 }
 
+function formatCustom(date) {
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const yyyy = date.getFullYear();
+
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+
+  return `(${mm}-${dd}-${yyyy} @ ${hours}:${minutes} ${ampm})`;
+}
+
 function createCard(stream, isLive) {
   const card = document.createElement("div");
   card.className = "card";
@@ -151,15 +164,16 @@ function createCard(stream, isLive) {
   title.className = "title";
   title.textContent = stream.name;
 
-  // PHILIPPINES TIME
-  const startPH = new Date(stream.starts_at * 1000).toLocaleString("en-PH", { timeZone: "Asia/Manila" });
-  const endPH = new Date(stream.ends_at * 1000).toLocaleString("en-PH", { timeZone: "Asia/Manila" });
+  const startPH = new Date(stream.starts_at * 1000);
+  const endPH = new Date(stream.ends_at * 1000);
+
+  const formattedStart = formatCustom(startPH);
+  const formattedEnd = formatCustom(endPH);
 
   const schedule = document.createElement("div");
   schedule.className = "schedule";
-  schedule.textContent = `📅 ${startPH} — ${endPH}`;
+  schedule.textContent = `📅 ${formattedStart} — ${formattedEnd}`;
 
-  // CHANNEL FROM `tag`
   const channelDiv = document.createElement("div");
   channelDiv.className = "channel";
   channelDiv.textContent = `📺 Channel: ${stream.tag}`;
