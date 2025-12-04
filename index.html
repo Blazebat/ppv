@@ -69,7 +69,7 @@ let allStreams = [];
 let intervalId;
 
 async function loadStreams() {
-  const res = await fetch("https://ppv.to/api/streams");
+  const res = await fetch("https://api.ppv.to/api/streams");
   const data = await res.json();
 
   allStreams = [];
